@@ -1,0 +1,32 @@
+
+
+#ifndef LISA_CONFIG_HPP
+#define LISA_CONFIG_HPP
+
+
+#define Lisa_VERSION_MAJOR @Lisa_VERSION_MAJOR@
+#define Lisa_VERSION_MINOR @Lisa_VERSION_MINOR@
+#define Lisa_VERSION_PATCH @Lisa_VERSION_PATCH@
+#define Lisa_VERSION "@Lisa_VERSION@"
+
+#define Lisa_PROJECT_NAME "@PROJECT_NAME@"
+
+
+#cmakedefine ENABLE_LISA_PROFILE
+#cmakedefine ENABLE_LISA_OPENMP
+#cmakedefine ENABLE_LISA_LOGGING
+#cmakedefine BUILD_LEGACY_LISA
+
+
+namespace lisa {
+
+
+static char const* get_version() {
+  return Lisa_VERSION;
+}
+
+
+}
+
+
+#endif

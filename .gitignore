@@ -1,0 +1,15 @@
+
+src/legacy
+*.log
+*.dat
+
+build/
+bin/
+lib/
+include/
+
+
+*__pycache__/
+*.ipynb_checkpoints/
+
+.DS_Store

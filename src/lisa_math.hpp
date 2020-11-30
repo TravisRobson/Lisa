@@ -1,0 +1,26 @@
+
+
+#ifndef lisa_math_hpp
+#define lisa_math_hpp
+
+
+#include <vector>
+
+
+namespace lisa {
+
+
+///////////////////////////////////////////////////////////////////////////////
+///
+/// By forward we mean:
+///////////////////////////////////////////////////////////////////////////////
+void forward_fft(std::vector<double>& v);
+
+  
+
+bool isPowerOfTwo(int i);
+
+
+}
+
+#endif
