@@ -11,7 +11,9 @@
 ## Commands
 
 To run the tests and view HTML output.
+
 `$ ./bin/tests_lisa --gtest_output=xml:test_detail.xml`
+
 `$ xsltproc src/tests/gtest_to_html.xslt test_detail.xml > test_detail.html`
 
 ## Todo
