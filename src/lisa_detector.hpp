@@ -85,7 +85,7 @@ NoiseXAE analytic_instrument_noise_legacy(double freq);
 /// \param params GB parameters for which the signal would be generated.
 /// \param obs_period Observation period of LISA.
 ///////////////////////////////////////////////////////////////////////////////
-std::pair<int, double> gb_bandwidth(const GB_params& params, double obs_period);
+std::pair<size_t, double> gb_bandwidth(const GB_params& params, double obs_period);
 
 
 // void spacecraft_position(ThreeVec& pos_0, ThreeVec& pos_1, ThreeVec& pos_2, double time);

@@ -107,37 +107,37 @@ std::vector<GB_params> read_gb_params(const std::string& filename);
 ///
 /// C interface for Python consumption.
 ///
-#ifdef __cplusplus
-extern "C" {
-#endif
+// #ifdef __cplusplus
+// extern "C" {
+// #endif
 
 
-void lisa_test();
+// void lisa_test();
 
 
-double lisa_add(double a, double b);
+// double lisa_add(double a, double b);
 
 
-struct C_GB_params {
-  double freq;            ///< Frequency (HZ)
-  double freq_dot;        ///< Frequency time derivative, df/dt, ("f-dot")
-  double theta;           ///< Polar angle on sky (solar system barycenter coord)
-  double phi;             ///< Azimuthal angle on sky
-  double amp;             ///< Amplitude
-  double iota;            ///< Binary system inclination angle
-  double psi;             ///< GW polarization angle
-  double phase;           ///< Initial GW phase angle
-  double freq_double_dot; ///< Second time derivative
-};
+// struct C_GB_params {
+//   double freq;            ///< Frequency (HZ)
+//   double freq_dot;        ///< Frequency time derivative, df/dt, ("f-dot")
+//   double theta;           ///< Polar angle on sky (solar system barycenter coord)
+//   double phi;             ///< Azimuthal angle on sky
+//   double amp;             ///< Amplitude
+//   double iota;            ///< Binary system inclination angle
+//   double psi;             ///< GW polarization angle
+//   double phase;           ///< Initial GW phase angle
+//   double freq_double_dot; ///< Second time derivative
+// };
 
-C_GB_params* lisa_read_gb_params(char* const filename);
+// C_GB_params* lisa_read_gb_params(char* const filename);
 
-double freq(C_GB_params* p); 
+// double freq(C_GB_params* p); 
 
 
-#ifdef __cplusplus
-} // end extern "C"
-#endif
+// #ifdef __cplusplus
+// } // end extern "C"
+// #endif
 
 
 #endif

@@ -1,6 +1,11 @@
 
 
+#ifndef lisa_errors_hpp
+#define lisa_errors_hpp
+
+
 #include <fstream>
+#include <stdexcept>
 #include <string>
 #include <string.h>
 
@@ -11,12 +16,28 @@
 #define STRINGIFY(x) #x
 #define TO_STRING(x) STRINGIFY(x)
 
-bool file_accessible(const std::string& name) {
+
+///////////////////////////////////////////////////////////////////////////////
+///
+///////////////////////////////////////////////////////////////////////////////
+inline bool file_accessible(const std::string& name) {
   std::ifstream f(name);
   return f.good();
 }
 
 
+namespace lisa {
 
-    std::string at{std::string(__FILENAME__) + ":" + std::string(TO_STRING(__LINE__))};
-    throw std::runtime_error("At " + at + " file (" + source_filename + ") not accessible.\n");
+///////////////////////////////////////////////////////////////////////////////
+///
+///////////////////////////////////////////////////////////////////////////////
+void throw_error(const char* filename, int line, const char* message);
+
+/// And a convenience macro.
+#define THROW_ERROR(msg) throw_error(TO_STRING(__FILENAME__), __LINE__, msg)
+
+
+}
+
+
+#endif

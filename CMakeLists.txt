@@ -6,7 +6,8 @@ project( Lisa VERSION 0.1.0 LANGUAGES C CXX )
 
 option(ENABLE_LISA_OPENMP  "Use OpenMP"             OFF)
 option(ENABLE_LISA_PROFILE "Enable LISA profiling"  ON)
-option(ENABLE_LISA_TESTS   "Enable LISA tests"      OFF)
+option(ENABLE_LISA_LOGGING "Enable app logging"     OFF)
+option(ENABLE_LISA_TESTS   "Enable LISA tests"      ON)
 option(BUILD_SHARED_LIBS   "Build shared libraries" OFF) # Default, for Python ctypes interface.
 option(LISA_USE_GSL        "Build with GSL"         ON)
 option(BUILD_LEGACY_LISA   "Build legacy code"      ON) # \todo I will want to turn this off 

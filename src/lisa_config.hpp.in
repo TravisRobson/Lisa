@@ -21,7 +21,7 @@
 namespace lisa {
 
 
-static char const* get_version() {
+inline char const* get_version() {
   return Lisa_VERSION;
 }
 

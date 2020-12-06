@@ -21,6 +21,7 @@ target_sources(lisa
     lisa_detector.cpp
     lisa_errors.cpp
     lisa_math.cpp
+    lisa_noise.cpp
     lisa_types.cpp
     lisa_utils.cpp)
 

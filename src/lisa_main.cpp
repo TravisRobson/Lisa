@@ -1,6 +1,5 @@
 
 
-// #include <complex>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -12,6 +11,7 @@
 #include "lisa_constants.hpp"
 #include "lisa_detector.hpp"
 #include "lisa_errors.hpp"
+#include "lisa_math.hpp"
 #include "lisa_types.hpp"
 #include "lisa_utils.hpp"
 
@@ -24,7 +24,6 @@
 #endif
 
 //#define USE_BINARY
-
 
 
 void process_args(int argc, char* argv[]);
@@ -74,6 +73,8 @@ static std::string log_filename { std::string(FILENAME_BASE) + ".log" };
 ///
 static std::string bright_filename { "bright_gbs.dat" };
 
+///
+static std::string tdi_filename { "galaxy_tdi.dat" };
 
 ///
 constexpr double amp_upper_limit { 2.0 };
@@ -84,10 +85,14 @@ constexpr double freq_upper_limit { 20.0e-3 }; // 20 mHz
 
 
 /// Memory pool for single GB signals (complex)
+std::vector<double> X_pool;
+std::vector<double> A_pool;
+std::vector<double> E_pool;
+
+
 std::vector<double> X_channel;
 std::vector<double> A_channel;
 std::vector<double> E_channel;
-
 
 
 int main(int argc, char* argv[])
@@ -211,6 +216,8 @@ void run()
   lisa::g_timers.add_timer("read source file");
   lisa::g_timers.add_timer("simulate GBs");
   lisa::g_timers.add_timer("calc GB signal");
+  lisa::g_timers.add_timer("calc summed signals");
+  lisa::g_timers.add_timer("write signal file");
 
 
   //
@@ -279,23 +286,30 @@ void run()
   bright_file.open(root_path + bright_filename);
 
   // Reserve memory for GB signals
-  X_channel.reserve(2 * 8192);
-  A_channel.reserve(2 * 8192);
-  E_channel.reserve(2 * 8192);
+  X_pool.reserve(2 * 8192);
+  A_pool.reserve(2 * 8192);
+  E_pool.reserve(2 * 8192);
 
-  // Strains
-  lisa::Strains strains_buffer(2 * 8192);
 
-  for ( size_t i = 0; i < gb_params.size(); ++i) {
+  // To hold the sum total of all galactic binary signals
+  X_channel.resize(samples_1_year, 0.0);
+  A_channel.resize(samples_1_year, 0.0);
+  E_channel.resize(samples_1_year, 0.0);
 
-    const lisa::GB_params& params = gb_params[ i ];
+
+  // // Strains
+  // lisa::Strains strains_buffer(2 * 8192);
+
+  for ( size_t param_idx = 0; param_idx < gb_params.size(); ++param_idx) {
+
+    const lisa::GB_params& params = gb_params[ param_idx ];
     if (params.freq_dot < 0.0) {
       ++AMCVn_count;
     }
 
-    std::pair<int, double> out { lisa::gb_bandwidth(params, observation_period) };
+    std::pair<size_t, double> out { lisa::gb_bandwidth(params, observation_period) };
 
-    int num_samples { out.first };
+    size_t num_samples { out.first };
     double cutoff_amp { out.second };
 
     if (cutoff_amp > amp_upper_limit) {
@@ -305,29 +319,92 @@ void run()
     // Only simulate binaries below an upper limit (20 mHz).
     if (params.freq < freq_upper_limit) {
     
-      X_channel.resize(2 * num_samples);
-      A_channel.resize(2 * num_samples);
-      E_channel.resize(2 * num_samples);
+      X_pool.resize(2 * num_samples);
+      A_pool.resize(2 * num_samples);
+      E_pool.resize(2 * num_samples);
 
       //strains_buffer.resize(2 * num_samples);
 
       lisa::g_timers.start_timer("calc GB signal");
-      lisa::calc_gb_signal(params, X_channel, A_channel, E_channel, observation_period);
+      lisa::calc_gb_signal(params, X_pool, A_pool, E_pool, observation_period);
       lisa::g_timers.stop_timer("calc GB signal");
+
+      /////////////////////////////////////////////////////////////////////////
+      /// \todo move this function into Lisa library.
+      lisa::g_timers.start_timer("calc summed signals");
+      for (size_t i = 0; i < num_samples; ++i) {
+
+        size_t carrier_freq_bin { static_cast<size_t>(params.freq * observation_period) };
+
+        size_t k { carrier_freq_bin + i - num_samples / 2 };
+
+        size_t real { 2 * k };
+        size_t imag { 2 * k + 1 };
+
+        X_channel[real] += X_pool[2 * i];
+        X_channel[imag] += X_pool[2 * i + 1];
+
+        A_channel[real] += A_pool[2 * i];
+        A_channel[imag] += A_pool[2 * i + 1];
+
+        E_channel[real] += E_pool[2 * i];
+        E_channel[imag] += E_pool[2 * i + 1];
+
+      }
+      lisa::g_timers.stop_timer("calc summed signals");
+      /////////////////////////////////////////////////////////////////////////
 
     }
 
     //
     // Print prgress bar every 10,000 binaries simulated.
     //
-    if ( i % 10000 == 0 ) {
-      double percent_done { (double)i / gb_params.size() };
+    if ( param_idx % 10000 == 0 ) {
+      double percent_done { (double)param_idx / gb_params.size() };
       lisa::print_progress(percent_done);
     }
 
   }
+  lisa::print_progress(1.0);
   bright_file.close();
   lisa::g_timers.stop_timer("simulate GBs");
+
+
+  /////////////////////////////////////////////////////////////////////////
+  /// \todo move this function into Lisa library.
+  std::ofstream tdi_file;
+  tdi_file.open(root_path + tdi_filename, std::ios::out);
+  tdi_file << std::scientific;
+
+  int max_freq_index { static_cast<int>(std::ceil(20e-3 * observation_period)) };
+  double sqrt_obs_period { std::sqrt(observation_period) };
+
+  lisa::g_timers.start_timer("write signal file");
+  for (int i = 1; i < max_freq_index; ++i) {
+
+    double freq { i / observation_period };
+
+    tdi_file << freq << " ";
+
+    // Add in a realization of instrument noise
+    lisa::NoiseXAE noise { lisa::analytic_instrument_noise_legacy(freq) };
+
+    tdi_file << sqrt_obs_period * X_channel[2 * i + 0] + 0.5 * std::sqrt(noise.XYZ) * lisa::gaussian_variate() << " ";
+    tdi_file << sqrt_obs_period * X_channel[2 * i + 1] + 0.5 * std::sqrt(noise.XYZ) * lisa::gaussian_variate() << " ";
+
+    tdi_file << sqrt_obs_period * A_channel[2 * i + 0] + 0.5 * std::sqrt(noise.AE) * lisa::gaussian_variate() << " ";
+    tdi_file << sqrt_obs_period * A_channel[2 * i + 1] + 0.5 * std::sqrt(noise.AE) * lisa::gaussian_variate() << " ";
+
+    tdi_file << sqrt_obs_period * E_channel[2 * i + 0] + 0.5 * std::sqrt(noise.AE) * lisa::gaussian_variate() << " ";
+    tdi_file << sqrt_obs_period * E_channel[2 * i + 1] + 0.5 * std::sqrt(noise.AE) * lisa::gaussian_variate() << " ";
+
+    tdi_file << "\n";
+
+
+  }
+  tdi_file.close();
+  lisa::g_timers.stop_timer("write signal file");
+  /////////////////////////////////////////////////////////////////////////
 
 
   std::cout << std::endl;

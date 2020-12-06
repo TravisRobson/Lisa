@@ -18,7 +18,7 @@
 #include "lisa_errors.hpp"
 
 
-static std::string remove_extension( std::string filename ) {
+inline std::string remove_extension( std::string filename ) {
 
   size_t lastindex = filename.find_last_of("."); 
   return filename.substr(0, lastindex); 

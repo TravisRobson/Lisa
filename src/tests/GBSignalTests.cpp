@@ -76,7 +76,7 @@ TEST(GBSignalTests, LegacyRegression)
 
   // First two expect, third assert to kill test. Don't want
   // too many printouts.
-  for (int i = 0; i < X.size(); ++i) {
+  for (size_t i = 0; i < X.size(); ++i) {
     EXPECT_FLOAT_EQ(X[i], X_legacy[i + 1]) << "[i] = [" << i << "]";
     EXPECT_FLOAT_EQ(A[i], A_legacy[i + 1]) << "[i] = [" << i << "]";
     ASSERT_FLOAT_EQ(E[i], E_legacy[i + 1]) << "[i] = [" << i << "]";

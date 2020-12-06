@@ -15,7 +15,8 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(tests_lisa 
   ParamBinFileTests.cpp 
-  GBSignalTests.cpp)
+  GBSignalTests.cpp
+  TDIPowerFitTests.cpp)
 target_link_libraries(tests_lisa PRIVATE lisa gtest gtest_main)
 target_include_directories(tests_lisa PRIVATE include/lisa)
 install(TARGETS tests_lisa RUNTIME DESTINATION bin)

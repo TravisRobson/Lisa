@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "lisa_constants.hpp"
+#include "lisa_math.hpp"
 #include "lisa_types.hpp"
 #include "lisa_utils.hpp" /// Just for Timers (experimenting with global Timers object)
 
@@ -63,7 +64,9 @@ void fill_gb_params_binary(GB_params& params, std::istream& is)
 /// \todo Need to double check some of the angle parameter domains.
 ///////////////////////////////////////////////////////////////////////////////
 void validate(const GB_params& params) {
-
+#ifdef NDEBUG
+  (void)params;
+#endif
   assert(params.freq > 0.0);
   assert(0.0 <= params.theta && params.theta <= constants::pi / 2.0);
   assert(0.0 <= params.phi && params.phi < 2.0 * constants::pi);
@@ -172,7 +175,7 @@ NoiseXAE analytic_instrument_noise_legacy(double freq)
 /// \todo  This is a pretty out of date function. I am currently use it while
 /// I reproduce the functionality of the original code. 
 ///////////////////////////////////////////////////////////////////////////////
-std::pair<int, double> gb_bandwidth(const GB_params& params, double obs_period)
+std::pair<size_t, double> gb_bandwidth(const GB_params& params, double obs_period)
 {
 
   //
@@ -517,7 +520,7 @@ void calc_gb_signal(
   double angular_carrier_freq { 2.0 * constants::pi * 
     static_cast<double>(carrier_freq_bin) / obs_period };
 
-  int num_time_samples { X.size() / 2 }; // because X holds real and imag values.
+  size_t num_time_samples { X.size() / 2 }; // because X holds real and imag values.
 
   std::vector<double> signal_01(X.size());
   std::vector<double> signal_02(X.size());
@@ -542,7 +545,7 @@ void calc_gb_signal(
 
   // Strains strains(X.size());
 
-  for (int time_idx = 0; time_idx < num_time_samples; ++time_idx) {
+  for (size_t time_idx = 0; time_idx < num_time_samples; ++time_idx) {
 
     // First time sample must be at 0.0 to have correct phasing.
     double time { obs_period * static_cast<double>(time_idx) 
@@ -854,8 +857,8 @@ void calc_gb_signal(
     // signal_imag[5] = out.imag();
 
     // Fill in time series with slowly evolving signal
-    int real_idx { 2 * time_idx };
-    int imag_idx { 2 * time_idx + 1 };
+    size_t real_idx { 2 * time_idx };
+    size_t imag_idx { 2 * time_idx + 1 };
 
     // signal_01[real_idx] = signal_real[0];
     // signal_01[imag_idx] = signal_imag[0];
@@ -953,24 +956,12 @@ void calc_gb_signal(
   } // end time_idx for loop
 
   // Numerical Fourier transform of slowly evolving signal 
-  int status = gsl_fft_complex_radix2_forward(signal_01.data(), 1, num_time_samples);
-  if (status) { throw std::runtime_error("GSL error"); }
-
-  status = gsl_fft_complex_radix2_forward(signal_02.data(), 1, num_time_samples);
-  if (status) { throw std::runtime_error("GSL error"); }
-
-  status = gsl_fft_complex_radix2_forward(signal_12.data(), 1, num_time_samples);
-  if (status) { throw std::runtime_error("GSL error"); }
-
-  status = gsl_fft_complex_radix2_forward(signal_10.data(), 1, num_time_samples);
-  if (status) { throw std::runtime_error("GSL error"); }
-
-  status = gsl_fft_complex_radix2_forward(signal_20.data(), 1, num_time_samples);
-  if (status) { throw std::runtime_error("GSL error"); }
-
-  status = gsl_fft_complex_radix2_forward(signal_21.data(), 1, num_time_samples);
-  if (status) { throw std::runtime_error("GSL error"); }
-
+  forward_fft(signal_01);
+  forward_fft(signal_02);
+  forward_fft(signal_12);
+  forward_fft(signal_10);
+  forward_fft(signal_20);
+  forward_fft(signal_21);
 
   std::vector<double> y_01(X.size());
   std::vector<double> y_02(X.size());
@@ -986,7 +977,7 @@ void calc_gb_signal(
   // Recall FFT frequencies organized like:
   // neg[N/2-1], neg[N/2-2], ... , pos[0], ..., pos[N/2] 
   // Move negative frequncy part to "right" of positive.
-  for (int i = 0; i < num_time_samples; ++i) {
+  for (size_t i = 0; i < num_time_samples; ++i) {
 
     y_01[i] = signal_01[num_time_samples + i] * norm;
     y_02[i] = signal_02[num_time_samples + i] * norm;
@@ -1019,7 +1010,7 @@ void calc_gb_signal(
   std::vector<double> Z_lisa_sim(X.size());
 
 
-  for (int i = 0; i < num_time_samples; ++i) {
+  for (size_t i = 0; i < num_time_samples; ++i) {
 
     double freq { static_cast<double>(carrier_freq_bin + i - num_time_samples / 2) / obs_period };
     double freq_on_fstar { freq / constants::freq_star };
@@ -1033,8 +1024,8 @@ void calc_gb_signal(
     double sin_3 { std::sin(3.0 * freq_on_fstar) };
     double cos_3 { std::cos(3.0 * freq_on_fstar) };
 
-    int real { 2 * i };
-    int imag { 2 * i + 1 };
+    size_t real { 2 * i };
+    size_t imag { 2 * i + 1 };
 
     // X channel
     X_temp[real] = (y_01[real] - y_02[real]) * cos_3 + (y_01[imag] - y_02[imag]) * sin_3 +
@@ -1081,7 +1072,7 @@ void calc_gb_signal(
 
   }
 
-  for (int i = 0; i < 2 * num_time_samples; ++i) {
+  for (size_t i = 0; i < 2 * num_time_samples; ++i) {
     A[i] = (2.0 * X[i] - Y_lisa_sim[i] - Z_lisa_sim[i]) / 3.0;
     E[i] = (Z_lisa_sim[i] - Y_lisa_sim[i]) / std::sqrt(3.0);
   }

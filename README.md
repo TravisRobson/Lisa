@@ -7,6 +7,13 @@
 - In *.c/cpp files be sure to include the same named header file first.
 - Files shall not include header files they don't need. However, header files themselves must include all other header files necessary to fully parse itself.
 
+
+## Commands
+
+To run the tests and view HTML output.
+`$ ./bin/tests_lisa --gtest_output=xml:test_detail.xml`
+`$ xsltproc src/tests/gtest_to_html.xslt test_detail.xml > test_detail.html`
+
 ## Todo
 
 - Doxygen documentation (i.e. doc Makefile target)

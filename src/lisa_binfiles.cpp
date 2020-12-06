@@ -168,51 +168,51 @@ std::vector<GB_params> read_gb_params(const std::string& filename)
 } // end lisa namespace
 
 
-///
-/// C interface for Python consumption.
-///
-#ifdef __cplusplus
-extern "C" {
-#endif
+// ///
+// /// C interface for Python consumption.
+// ///
+// #ifdef __cplusplus
+// extern "C" {
+// #endif
 
 
-void lisa_test() {
-  // std::cout << "I'm in test!\n";
-  // puts("Hello");
-  printf("Hello\n");
-}
-
-
-double lisa_add(double a, double b) {
-  return a + b;
-}
-
-
-// struct C_GB_params_array {
-
+// void lisa_test() {
+//   // std::cout << "I'm in test!\n";
+//   // puts("Hello");
+//   printf("Hello\n");
 // }
 
 
-C_GB_params* lisa_read_gb_params(char* const filename)
-{
-
-  // std::vector<C_GB_params> params(1);
-
-  // return params.data();
-
-  C_GB_params* pParams = new C_GB_params[1]();
-
-  pParams->freq = 1.23456;
-
-  return pParams;
-
-}
+// double lisa_add(double a, double b) {
+//   return a + b;
+// }
 
 
-double freq(C_GB_params* p) { return p->freq; }
+// // struct C_GB_params_array {
+
+// // }
 
 
-#ifdef __cplusplus
-} // end extern "C"
-#endif
+// // C_GB_params* lisa_read_gb_params(char* const filename)
+// // {
+
+// //   // std::vector<C_GB_params> params(1);
+
+// //   // return params.data();
+
+// //   C_GB_params* pParams = new C_GB_params[1]();
+
+// //   pParams->freq = 1.23456;
+
+// //   return pParams;
+
+// // }
+
+
+// double freq(C_GB_params* p) { return p->freq; }
+
+
+// #ifdef __cplusplus
+// } // end extern "C"
+// #endif
 

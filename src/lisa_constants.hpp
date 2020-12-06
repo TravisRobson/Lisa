@@ -30,6 +30,7 @@ namespace constants {
                                               ///< where sidereal year is 365.256 363 004 days.
   constexpr double au { 1.49597870660e11 };   ///< Astronomical Unit (m)
   constexpr double pi { M_PI };
+  constexpr double euler { 0.57721566490153286060 }; ///< Euler-mascheroni constant.
 
 
 }

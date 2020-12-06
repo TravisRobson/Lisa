@@ -54,18 +54,48 @@ done
 
 
 blue="\033[0;94m"
+green="\033[0;92m"
+red="\033[0;91m"
 yellow="\033[0;33m"
 bold="\033[1m"
 reset="\033[0m"
 
 # Report the chosen configuration
+# \todo I want a cleaner way to change the color.
 cli_log "${blue}${bold}Build type${reset}................${yellow}${bold}${BUILD_TYPE}${reset}"
+
 cli_log "${blue}${bold}Install prefix${reset}............${yellow}${bold}${INSTALL_PREFIX}${reset}"
-cli_log "${blue}${bold}Enable tests${reset}..............${yellow}${bold}${ENABLE_LISA_TESTS}${reset}"
-cli_log "${blue}${bold}Use OpenMP${reset}................${yellow}${bold}${ENABLE_LISA_OPENMP}${reset}"
-cli_log "${blue}${bold}Enable Lisa profiling${reset}.....${yellow}${bold}${ENABLE_LISA_PROFILE}${reset}"
-cli_log "${blue}${bold}Enable logging${reset}............${yellow}${bold}${ENABLE_LISA_LOGGING}${reset}"
-cli_log "${blue}${bold}Build legacy code${reset}.........${yellow}${bold}${BUILD_LEGACY_LISA}${reset}"
+
+if [[ ${ENABLE_LISA_TESTS} == "ON" ]]; then
+cli_log "${blue}${bold}Enable tests${reset}..............${green}${bold}${ENABLE_LISA_TESTS}${reset}"
+else
+cli_log "${blue}${bold}Enable tests${reset}..............${green}${bold}${ENABLE_LISA_TESTS}${reset}"  
+fi
+
+if [[ ${ENABLE_LISA_OPENMP} == "ON" ]]; then
+cli_log "${blue}${bold}Use OpenMP${reset}................${green}${bold}${ENABLE_LISA_OPENMP}${reset}"
+else
+cli_log "${blue}${bold}Use OpenMP${reset}................${red}${bold}${ENABLE_LISA_OPENMP}${reset}"
+fi
+
+if [[ ${ENABLE_LISA_PROFILE} == "ON" ]]; then
+cli_log "${blue}${bold}Enable Lisa profiling${reset}.....${green}${bold}${ENABLE_LISA_PROFILE}${reset}"
+else
+cli_log "${blue}${bold}Enable Lisa profiling${reset}.....${red}${bold}${ENABLE_LISA_PROFILE}${reset}"
+fi
+
+if [[ ${ENABLE_LISA_LOGGING} == "ON" ]]; then
+cli_log "${blue}${bold}Enable logging${reset}............${green}${bold}${ENABLE_LISA_LOGGING}${reset}"
+else
+cli_log "${blue}${bold}Enable logging${reset}............${red}${bold}${ENABLE_LISA_LOGGING}${reset}"
+fi
+
+if [[ ${BUILD_LEGACY_LISA} == "ON" ]]; then
+cli_log "${blue}${bold}Build legacy code${reset}.........${green}${bold}${BUILD_LEGACY_LISA}${reset}"
+else
+cli_log "${blue}${bold}Build legacy code${reset}.........${red}${bold}${BUILD_LEGACY_LISA}${reset}"
+fi
+
 
 cli_log "Creating build/"
 mkdir -p $ROOT_DIR/build
@@ -81,7 +111,7 @@ cmd="${cmd} -D CMAKE_INSTALL_PREFIX:PATH=${INSTALL_PREFIX}"
 cmd="${cmd} -D ENABLE_LISA_TESTS=${ENABLE_LISA_TESTS}"
 cmd="${cmd} -D ENABLE_LISA_OPENMP=${ENABLE_LISA_OPENMP}"
 cmd="${cmd} -D ENABLE_LISA_PROFILE=${ENABLE_LISA_PROFILE}"
-cmd="${cmd} -D ENABLE_LISA_PROFILE=${ENABLE_LISA_LOGGING}"
+cmd="${cmd} -D ENABLE_LISA_LOGGING=${ENABLE_LISA_LOGGING}"
 cmd="${cmd} -D BUILD_LEGACY_LISA=${BUILD_LEGACY_LISA}"
 cmd="${cmd} .."
 cli_log "${cmd}"
